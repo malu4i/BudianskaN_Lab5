@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">BudianskaN_Lab5</string>
+
+    <string name="hint_name">Імя</string>
+    <string name="hint_email">E-mail</string>
+    <string name="hint_phone">Телефон</string>
+    <string name="hint_competition">Конкурс</string>
+
+</resources>
