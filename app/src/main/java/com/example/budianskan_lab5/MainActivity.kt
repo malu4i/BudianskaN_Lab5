@@ -18,18 +18,31 @@ class MainActivity : AppCompatActivity() {
         Participant(3, "Сергій Коваленко", "serg@example.com", "+380981234567", "Хімія")
     )
     private lateinit var adapter: ParticipantAdapter
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Налаштування RecyclerView
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ParticipantAdapter(participants) { participant ->
             showParticipantOptions(participant)
         }
         recyclerView.adapter = adapter
+
+        // Відновлення стану
+        savedInstanceState?.let {
+            val restoredParticipants = it.getParcelableArrayList<Participant>("participants")
+            if (restoredParticipants != null) {
+                participants.clear()
+                participants.addAll(restoredParticipants)
+                adapter.notifyDataSetChanged()
+            }
+            val position = it.getInt("scroll_position", 0)
+            recyclerView.scrollToPosition(position)
+        }
 
         // Налаштування FloatingActionButton
         val fab = findViewById<FloatingActionButton>(R.id.fab)
@@ -38,8 +51,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Збереження списку учасників
+        outState.putParcelableArrayList("participants", ArrayList(participants))
+
+        // Збереження позиції прокрутки
+        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+        outState.putInt("scroll_position", layoutManager.findFirstVisibleItemPosition())
+    }
+
     private fun showParticipantOptions(participant: Participant) {
-        // Опції для дій над учасником
         val options = arrayOf("Дзвонити", "Редагувати", "Видалити", "Докладно")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Виберіть дію")
@@ -61,7 +83,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addParticipant() {
-        // Додаємо нового учасника (статичні дані для прикладу)
         val newParticipant = Participant(
             id = participants.size + 1,
             name = "Новий Учасник",
@@ -77,7 +98,6 @@ class MainActivity : AppCompatActivity() {
     private fun editParticipant(participant: Participant) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_participant, null)
 
-        // Заповнюємо поля поточними даними
         val editName = dialogView.findViewById<android.widget.EditText>(R.id.editName)
         val editEmail = dialogView.findViewById<android.widget.EditText>(R.id.editEmail)
         val editPhone = dialogView.findViewById<android.widget.EditText>(R.id.editPhone)
@@ -88,7 +108,6 @@ class MainActivity : AppCompatActivity() {
         editPhone.setText(participant.phoneNumber)
         editCompetition.setText(participant.competition)
 
-        // Відображення діалогу редагування
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Редагувати учасника")
         builder.setView(dialogView)
@@ -137,3 +156,4 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 }
+
